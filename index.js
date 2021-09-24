@@ -1,4 +1,5 @@
 let vetorJogadores = [];
+let jogoRolando = false;
 
 function gerarNumeroAleatorio(inicioIntervalo, fimIntervalo) {
     return Math.floor((fimIntervalo - inicioIntervalo) * Math.random()) + inicioIntervalo;
@@ -26,6 +27,11 @@ function gerarCartela(){
 }
 
 function gerarCartelaHTML() {
+
+    if(jogoRolando == true){
+        alert("Não é possível gerar uma cartela com o jogo em andamento!");
+        return;
+    }
 
     let nomeJogador = prompt("Digite o nome do jogador:");
     if(nomeJogador == "" || nomeJogador == null){
@@ -98,14 +104,16 @@ function verificaCartela(cartela, numerosSorteados, quantidadeNumeros) {
         return false;
     }
     let numerosExistem = true;
-    cartela.forEach(function (numero) {
-        if (numerosSorteados.includes(numero) == true) {
-            numerosExistem = true;
-        } else {
-            numerosExistem = false;
-            return false;
+    for(let i = 0; i < 5; i++){
+        for(let j = 0; j < 5; j++){
+            if (numerosSorteados.includes(cartela[i][j]) == true) {
+                numerosExistem = true;
+            } else {
+                numerosExistem = false;
+                return false;
+            }
         }
-    });
+    };
     if (numerosExistem == true) {
         return true;
     }
@@ -116,6 +124,13 @@ function jogarBingo() {
         alert("Você precisa ter pelo menos dois jogadores para jogar!");
         return;
     }
+
+    jogoRolando = true;
+    let botaoGerarCartela = document.getElementById("botaoGerarCartela");
+    botaoGerarCartela.classList.add = "disabled"
+
+    let vetorTds = document.getElementsByTagName("td");
+    console.log(vetorTds);
     let numerosSorteados = [];
     let divSorteados = document.getElementById("sorteados");
     let intervalo = setInterval(function () {
@@ -127,6 +142,11 @@ function jogarBingo() {
             } else {
                 numeroExiste = false;
                 numerosSorteados.push(numeroAleatorio);
+                for(let i = 0; i < vetorTds.length; i++){
+                    if(vetorTds[i].innerText == numeroAleatorio){
+                        vetorTds[i].style = "background-color: #009c3f;"
+                    }
+                }
                 let divNumero = document.createElement("div");
                 divNumero.classList.add("col-2");
                 divNumero.classList.add("sorteado");
@@ -135,16 +155,36 @@ function jogarBingo() {
                 console.log("Números sorteados:", numerosSorteados);
                 vetorJogadores.forEach(function (jogador) {
                     if (verificaCartela(jogador.cartela, numerosSorteados, 25) == true) {
-                        console.log(`${jogador.nome} ganhou o Bingo! Parabéns!!!`);
+                        alert += (`${jogador.nome} ganhou o Bingo! Parabéns!!!`);
                         clearInterval(intervalo);
+                        jogoRolando = false;
                     }
                 });
             }
         }
         if (numerosSorteados.length >= 75) {
-            prompt("Sorteio Finalizado!");
+            alert("Sorteio Finalizado!");
             clearInterval(intervalo);
         }
     }, 50);
 }
 
+    function reiniciarJogo(){
+        let bingo = document.querySelector("#bingo");
+        let areaSorteio = document.querySelector("#sorteados");
+
+        let cartelas = document.querySelectorAll("#bingo > div");
+        let numerosSorteados = document.querySelectorAll("#sorteados > div")
+        if(cartelas.length > 0 && jogoRolando == false) {
+            cartelas.forEach(function(cartela){
+                bingo.removeChild(cartela);
+            });
+            numerosSorteados.forEach(function(numero){
+                areaSorteio.removeChild(numero);
+            })
+            let h2Vencedor = document.getElementById("vencedor");
+            vetorJogadores = [];
+        }else{
+            alert("Você não pode reiniciar o jogo enquanto ele está rolando!")
+        }
+    }
